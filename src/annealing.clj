@@ -66,23 +66,30 @@
   (* old-temp 0.999)
   )
 
-; Removes cycles in a vector
+; Removes extraneous cycles in a vector
+; for example [a b c d e f b c d g] --> [a b c d g]
 (defn remove-cycles [v]
   (loop [
          unseen v
          result []
-         visited #{}
          ]
 
-    (cond
-      (empty? unseen)
-          result
-      (contains? visited (first unseen))
-            (let [[_ therest] (split-with #(contains? visited %) unseen)]
-              (recur therest result visited)
-              )
-      :else
-          (recur (rest unseen) (conj result (first unseen)) (conj visited (first unseen)))
+    (let [a (first unseen)
+          r (rest unseen)
+          next (.indexOf r a)]
+
+      (cond
+        (empty? unseen)
+            result
+
+        (neg? next)
+            ; 'a' doesn't occur again in the future, just take it
+            (recur r (conj result a))
+
+        :else
+            ; a occurs in the future. Drop everything up to the duplicate
+            (recur (drop (inc next) r) (conj result a))
+        )
       )
     ))
 
@@ -132,7 +139,7 @@
 
 ;; Run many trials of finding the path between 2 words, collecting their path lengths
 (defn run-trials []
-  (let [num-trials     10
+  (let [num-trials     10000
         start-word     "apple"
         end-word       "cider"
         paths          (repeatedly num-trials
