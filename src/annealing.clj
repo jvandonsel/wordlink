@@ -9,7 +9,7 @@
 
 (ns annealing
   (:require [clojure.string :as str])
-  )
+  (:import (java.util Vector)))
 
 ;; Load dictionary
 (def dict-file "/usr/share/dict/words")
@@ -39,15 +39,12 @@
 
 ;; Changes one letter of the current vector, insuring
 ;; that the result is a legal word.
-;; If a legal word could not be found, throws an exception.
 (defn perturb-to-word [original]
-  (loop [n 10000
-         word original]
+  (loop [word original]
     (let [w (perturb word)]
       (cond
         (and (contains? word-set w) (not= w word)) w
-        (zero? n) (throw (IllegalArgumentException. (str "Failed to find adjacent word for " word)))
-        :else (recur (dec n) word)))
+        :else (recur word)))
     ))
 
 ; Given a temperature, returns random boolean representing
@@ -125,7 +122,7 @@
 ;; using simulated annealing.
 ;; The search stops when the temperature reaches zero, or if
 ;; we've found the end word.
-;; Returns a vector of words from start to end, or nil
+;; Returns a vector of words from start to end, or []
 ;; if we've reached zero temperature without finding the target.
 (defn find-path [start-word end-word]
   (let [initial-temperature 100
@@ -139,19 +136,21 @@
 
 ;; Run many trials of finding the path between 2 words, collecting their path lengths
 (defn run-trials []
-  (let [num-trials     10000
-        start-word     "apple"
-        end-word       "cider"
-        paths          (repeatedly num-trials
+  (let [num-trials      1000
+        start-word      "apple"
+        end-word        "cider"
+        paths           (repeatedly num-trials
                           #(find-path start-word end-word))
-        non-nil-paths  (filter not-empty paths)
-        lengths        (map count non-nil-paths)
-        average-length (avg lengths)
-        minimum-length (apply min lengths)
-        maximum-length (apply max lengths)
-        length-map     (zipmap lengths non-nil-paths)
-        shortest-path  (get length-map minimum-length)
+        non-empty-paths (filter not-empty paths)
+        empty-paths     (filter empty? paths)
+        lengths         (map count non-empty-paths)
+        average-length  (avg lengths)
+        minimum-length  (apply min lengths)
+        maximum-length  (apply max lengths)
+        length-map      (zipmap lengths non-empty-paths)
+        shortest-path   (get length-map minimum-length)
         ]
+    (println "non-empty-paths:" (count non-empty-paths) "empty-paths:" (count empty-paths))
     (println "avg=" average-length " min=" minimum-length " max=" maximum-length)
     (println "shortest path:" minimum-length shortest-path)
     ))
