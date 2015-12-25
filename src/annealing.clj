@@ -63,6 +63,11 @@
   (* old-temp 0.999)
   )
 
+; Average the values in a vector
+(defn avg [v]
+  (float (/ (reduce + v) (count v))))
+
+
 ; Removes extraneous cycles in a vector
 ; for example [a b c d e f b c d g] --> [a b c d g]
 (defn remove-cycles [v]
@@ -92,6 +97,7 @@
 
 ;; Do the actual simulated annealing loop, until we hit zero temperature,
 ;; or we hit the target.
+;;
 ;; Returns the word path as a vector, or nil if a path was not found.
 (defn anneal [current-word target temperature path]
   (let [new-word          (perturb-to-word current-word)
@@ -122,21 +128,29 @@
 ;; using simulated annealing.
 ;; The search stops when the temperature reaches zero, or if
 ;; we've found the end word.
+;;
 ;; Returns a vector of words from start to end, or []
 ;; if we've reached zero temperature without finding the target.
 (defn find-path [start-word end-word]
-  (let [initial-temperature 100
-        path (anneal start-word end-word initial-temperature [start-word])
-        ]
-    (remove-cycles path)))
 
-; Average the values in a vector
-(defn avg [v]
-  (float (/ (reduce + v) (count v))))
+  ; Validate the stard and end words
+  (if (and (contains? word-set start-word)
+           (contains? word-set end-word))
 
-;; Run many trials of finding the path between 2 words, collecting their path lengths
+    (let [initial-temperature 100
+          path (anneal start-word end-word initial-temperature [start-word])
+          ]
+      (remove-cycles path))
+
+    (throw (IllegalArgumentException. "invalid start or end word"))
+    ))
+
+
+
+;; Run many trials of find-path to find a word chain between 2 words,
+;; collecting their path lengths and printing statistics.
 (defn run-trials []
-  (let [num-trials      1000
+  (let [num-trials      100
         start-word      "apple"
         end-word        "cider"
         paths           (repeatedly num-trials
@@ -155,6 +169,7 @@
     (println "shortest path:" minimum-length shortest-path)
     ))
 
+;(run-trials)
 
 
 
