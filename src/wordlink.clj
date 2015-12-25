@@ -1,14 +1,16 @@
-;; Simple and naive simulated annealing example to find a chain of words
-;; linking a start and end word, each differing by one letter.
+;; Finds a chain of words linking a start and end word, each differing by one letter.
 ;;
-;; This isn't a very good application of simulated annealing since
-;; here our goodness metric is perfect, i.e. we know when we've reached
-;; the end word
+;; Depending on the setting of 'use-annealing' we will either use simulated annealing
+;; or fixed transition probabilities.
 ;;
 ;; Jim Van Donsel, December 2015
 
-(ns annealing
+(ns wordlink
   (:require [clojure.string :as str]))
+
+;; Set to true to use simulated annealing, otherwise
+;; fixed probabilities will be used.
+(def use-annealing false)
 
 ;; Load dictionary
 (def dict-file "/usr/share/dict/words")
@@ -37,7 +39,8 @@
   (str/join (assoc (vec v) (random-index v) (random-letter))))
 
 ;; Changes one letter of the current vector, insuring
-;; that the result is a legal word.
+;; that the result is a legal word. Can result in the same
+;; word being chosen.
 (defn perturb-to-word [original]
   (loop [word original]
     (let [w (perturb word)]
@@ -51,7 +54,8 @@
 ; Assumes temperature is on a 0-100 scale.
 (defn temp-to-accept [temp]
   (let [
-        thresh (/ temp 100)
+        ;; Use either a probability based on temperature, or a fixed probability
+        thresh (if use-annealing (/ temp 100) 0.1)
         ]
     (< (rand 1) thresh)
     )
@@ -64,7 +68,9 @@
 
 ; Average the values in a vector
 (defn avg [v]
-  (float (/ (reduce + v) (count v))))
+  (if (empty? v) 0
+                 (float (/ (reduce + v) (count v))))
+  )
 
 
 ; Removes extraneous cycles in a vector
@@ -74,11 +80,9 @@
          unseen v
          result []
          ]
-
-
     (let [a (first unseen)
           r (rest unseen)
-          ; find the next occurrence of 'a'
+          ; find any future duplicate occurrence of 'a'
           next (.indexOf r a)]
 
       (cond
@@ -86,11 +90,11 @@
             result
 
         (neg? next)
-            ; 'a' doesn't occur again in the future, just take it
+            ; 'a' doesn't occur again in the future, just take it.
             (recur r (conj result a))
 
         :else
-            ; a occurs in the future. Drop everything up to the duplicate
+            ; 'a' occurs in the future. Drop everything up to its duplicate.
             (recur (drop (inc next) r) (conj result a))
         )
       )
@@ -115,7 +119,7 @@
       (< temperature 0.001) nil
 
       ;; Take the new word if it's better,
-      ;; or if not better, sometimes take the new word anyway if accept is true
+      ;; or if not better, sometimes take the new word anyway if 'accept' is true
       (or
         (<= new-distance current-distance)
         accept
@@ -143,12 +147,12 @@
 ;; collecting their path lengths and printing statistics.
 (defn find-path [start-word end-word num-trials]
 
-  ; Validate the stard and end words
+  ; Validate the start and end words
   (if-not (and (contains? word-set start-word)
                (contains? word-set end-word))
 
     ;; Invalid start or end word
-    (throw (IllegalArgumentException. "Invalid start or end word"))
+    (throw (IllegalArgumentException. "Start word or end word doesn't appear in our dictionary"))
 
     ;; Valid start and and words
     (let [
@@ -157,6 +161,7 @@
           good-paths      (filter not-empty paths)
           bad-paths       (filter empty? paths)
           lengths         (map count good-paths)
+          _               (if (empty? lengths) (throw (Exception. "No paths found.")) nil)
           average-length  (avg lengths)
           minimum-length  (apply min lengths)
           maximum-length  (apply max lengths)
@@ -170,7 +175,7 @@
     ))
 
 
-(find-path "apple" "cider" 10)
+(find-path "apple" "cider" 1000)
 
 
 

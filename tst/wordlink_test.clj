@@ -1,6 +1,6 @@
-(ns annealing-test
+(ns wordlink-test
     (:require [clojure.test :refer :all]
-      [annealing :refer :all]
+      [wordlink :refer :all]
       ))
 
 
