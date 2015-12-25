@@ -8,8 +8,7 @@
 ;; Jim Van Donsel, December 2015
 
 (ns annealing
-  (:require [clojure.string :as str])
-  (:import (java.util Vector)))
+  (:require [clojure.string :as str]))
 
 ;; Load dictionary
 (def dict-file "/usr/share/dict/words")
@@ -76,8 +75,10 @@
          result []
          ]
 
+
     (let [a (first unseen)
           r (rest unseen)
+          ; find the next occurrence of 'a'
           next (.indexOf r a)]
 
       (cond
@@ -131,45 +132,45 @@
 ;;
 ;; Returns a vector of words from start to end, or []
 ;; if we've reached zero temperature without finding the target.
-(defn find-path [start-word end-word]
-
-  ; Validate the stard and end words
-  (if (and (contains? word-set start-word)
-           (contains? word-set end-word))
-
-    (let [initial-temperature 100
+(defn find-path- [start-word end-word]
+  (let [initial-temperature 100
           path (anneal start-word end-word initial-temperature [start-word])
           ]
-      (remove-cycles path))
-
-    (throw (IllegalArgumentException. "invalid start or end word"))
-    ))
+      (remove-cycles path)))
 
 
-
-;; Run many trials of find-path to find a word chain between 2 words,
+;; Run multiple trials of find-path to find a word chain between 2 words,
 ;; collecting their path lengths and printing statistics.
-(defn run-trials []
-  (let [num-trials      100
-        start-word      "apple"
-        end-word        "cider"
-        paths           (repeatedly num-trials
-                          #(find-path start-word end-word))
-        non-empty-paths (filter not-empty paths)
-        empty-paths     (filter empty? paths)
-        lengths         (map count non-empty-paths)
-        average-length  (avg lengths)
-        minimum-length  (apply min lengths)
-        maximum-length  (apply max lengths)
-        length-map      (zipmap lengths non-empty-paths)
-        shortest-path   (get length-map minimum-length)
-        ]
-    (println "non-empty-paths:" (count non-empty-paths) "empty-paths:" (count empty-paths))
-    (println "avg=" average-length " min=" minimum-length " max=" maximum-length)
-    (println "shortest path:" minimum-length shortest-path)
+(defn find-path [start-word end-word num-trials]
+
+  ; Validate the stard and end words
+  (if-not (and (contains? word-set start-word)
+               (contains? word-set end-word))
+
+    ;; Invalid start or end word
+    (throw (IllegalArgumentException. "Invalid start or end word"))
+
+    ;; Valid start and and words
+    (let [
+          paths           (repeatedly num-trials
+                                      #(find-path- start-word end-word))
+          good-paths      (filter not-empty paths)
+          bad-paths       (filter empty? paths)
+          lengths         (map count good-paths)
+          average-length  (avg lengths)
+          minimum-length  (apply min lengths)
+          maximum-length  (apply max lengths)
+          length-map      (zipmap lengths good-paths)
+          shortest-path   (get length-map minimum-length)
+          ]
+      (println "non-empty-paths:" (count good-paths) "empty-paths:" (count bad-paths))
+      (println "avg-length:" average-length " min-length:" minimum-length " max-length:" maximum-length)
+      (println "shortest path:" minimum-length shortest-path)
+      )
     ))
 
-;(run-trials)
+
+(find-path "apple" "cider" 10)
 
 
 
