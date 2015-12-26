@@ -40,12 +40,12 @@
 
 ;; Changes one letter of the current vector, insuring
 ;; that the result is a legal word. The original word
-;; will not be chosen.
+;; may be chosen.
 (defn perturb-to-word [original]
   (loop [word original]
     (let [w (perturb word)]
       (cond
-        (and (contains? word-set w) (not= w word)) w
+        (contains? word-set w) w
         :else (recur word)))
     ))
 

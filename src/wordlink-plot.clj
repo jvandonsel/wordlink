@@ -10,7 +10,7 @@
    ) )
 
 (def start-word "apple")
-(def end-word "cider")
+(def end-word   "cider")
 
 ; Given a list of words, returns the distance for each word
 (defn lengths [path]
@@ -31,12 +31,12 @@
   (add-lines plot (vec (range (count ys))) ys))
 
 ;; Run n iterations of find-path, plotting each
-(defn plot-runs [n]
+(defn run-and-plot [n]
   (let [plot (xy-plot)]
     (view plot)
     (repeatedly n #(overlay plot (get-path-distances)))
     ))
 
 ;; find paths and plot their distances
-(plot-runs 10)
+(run-and-plot 10)
 
