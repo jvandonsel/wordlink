@@ -85,7 +85,7 @@
     (let [a (first unseen)
           r (rest unseen)
           ; find any future duplicate occurrence of 'a'
-          next (.indexOf r a)]
+          next (.lastIndexOf r a)]
 
       (cond
         (empty? unseen)
@@ -146,9 +146,8 @@
 
 
 ;; Run multiple trials of find-path- to find a word chain between 2 words,
-;; collecting their path lengths and printing statistics.
+;; collecting their path lengths and statistics.
 (defn find-path [start-word end-word num-trials]
-
 
   (cond
     ; Validate the start and end words
@@ -175,15 +174,22 @@
           length-map     (zipmap lengths good-paths)
           shortest-path  (get length-map minimum-length)
           ]
-      (println "non-empty-paths:" (count good-paths) "empty-paths:" (count bad-paths))
-      (println "avg-length:" average-length " min-length:" minimum-length " max-length:" maximum-length)
-      (println "shortest path:" minimum-length shortest-path)
+      
+      {:non-empty-paths (count good-paths)
+       :empty-paths     (count bad-paths)
+       :avg-length      average-length
+       :min-length      minimum-length
+       :max-length      maximum-length
+       :shortest-path   shortest-path
+       }
+
       )
     ))
 
 
 (defn -main []
-  (find-path "apple" "cider" 100))
+  (println  (find-path "apple" "cider" 10)))
+
 
 
 

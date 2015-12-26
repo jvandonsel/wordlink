@@ -12,10 +12,10 @@ but we may increase the distance with a probability.  If simulated annealing
 is enabled, we will use a probability based on temperature, otherwise we will
 use a fixed probability.
 
-As an example, after many trials it found a chain of only 16 linked words between
+As an example, after many trials it found a chain of only 15 linked words between
 "apple" and "cider" as:
 
-**[apple ample amole anole ankle ankee anker inker inter enter ender eider bider rider hider cider]**
+**[apple ample amole anole ankle ankee anker inker inter enter ender eider bider sider cider]**
 
 The dictionary used here is Apple's, located at /usr/share/dict/words, but any word list 
 can be used.
