@@ -143,30 +143,35 @@
       (remove-cycles path)))
 
 
-;; Run multiple trials of find-path to find a word chain between 2 words,
+;; Run multiple trials of find-path- to find a word chain between 2 words,
 ;; collecting their path lengths and printing statistics.
 (defn find-path [start-word end-word num-trials]
 
-  ; Validate the start and end words
-  (if-not (and (contains? word-set start-word)
-               (contains? word-set end-word))
 
-    ;; Invalid start or end word
-    (throw (IllegalArgumentException. "Start word or end word doesn't appear in our dictionary"))
+  (cond
+    ; Validate the start and end words
+    (not (contains? word-set start-word))
+        (throw (IllegalArgumentException. "Start word doesn't appear in our dictionary"))
+    (not (contains? word-set end-word))
+        (throw (IllegalArgumentException. "End word doesn't appear in our dictionary"))
+    (not= (count start-word) (count end-word))
+        (throw (IllegalArgumentException. "Start word and end word are not the same length"))
+
+    :else
 
     ;; Valid start and and words
     (let [
-          paths           (repeatedly num-trials
-                                      #(find-path- start-word end-word))
-          good-paths      (filter not-empty paths)
-          bad-paths       (filter empty? paths)
-          lengths         (map count good-paths)
-          _               (if (empty? lengths) (throw (Exception. "No paths found.")) nil)
-          average-length  (avg lengths)
-          minimum-length  (apply min lengths)
-          maximum-length  (apply max lengths)
-          length-map      (zipmap lengths good-paths)
-          shortest-path   (get length-map minimum-length)
+          paths          (repeatedly num-trials
+                                     #(find-path- start-word end-word))
+          good-paths     (filter not-empty paths)
+          bad-paths      (filter empty? paths)
+          lengths        (map count good-paths)
+          _              (if (empty? lengths) (throw (Exception. "No paths found.")) nil)
+          average-length (avg lengths)
+          minimum-length (apply min lengths)
+          maximum-length (apply max lengths)
+          length-map     (zipmap lengths good-paths)
+          shortest-path  (get length-map minimum-length)
           ]
       (println "non-empty-paths:" (count good-paths) "empty-paths:" (count bad-paths))
       (println "avg-length:" average-length " min-length:" minimum-length " max-length:" maximum-length)
@@ -175,7 +180,7 @@
     ))
 
 
-(find-path "apple" "cider" 1000)
+(find-path "apple" "cider" 100)
 
 
 
