@@ -39,8 +39,8 @@
   (str/join (assoc (vec v) (random-index v) (random-letter))))
 
 ;; Changes one letter of the current vector, insuring
-;; that the result is a legal word. Can result in the same
-;; word being chosen.
+;; that the result is a legal word. The original word
+;; will not be chosen.
 (defn perturb-to-word [original]
   (loop [word original]
     (let [w (perturb word)]
@@ -55,7 +55,9 @@
 (defn temp-to-accept [temp]
   (let [
         ;; Use either a probability based on temperature, or a fixed probability
-        thresh (if use-annealing (/ temp 100) 0.1)
+        thresh (if use-annealing
+                 (/ temp 100) ; temperature-based probability (annealing)
+                 0.1) ; fixed probability
         ]
     (< (rand 1) thresh)
     )
@@ -180,7 +182,8 @@
     ))
 
 
-(find-path "apple" "cider" 100)
+(defn -main []
+  (find-path "apple" "cider" 100))
 
 
 
